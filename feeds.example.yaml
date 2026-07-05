@@ -1,0 +1,16 @@
+feeds:
+  - name: DGAP Ad-hoc
+    url: https://www.dgap.de/feed/adhoc.xml
+    category: corporate_actions
+
+  - name: TechCrunch AI
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    category: tech_news
+
+  - name: SEC Press Releases
+    url: https://www.sec.gov/rss/press.xml
+    category: regulatory
+
+defaults:
+  poll_interval_seconds: 600
+  max_items_per_run: 50

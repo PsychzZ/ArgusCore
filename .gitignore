@@ -3,6 +3,8 @@ __pycache__/
 *.egg-info/
 .venv/
 .env
+watchlist.yaml
+feeds.yaml
 *.log
 *.sqlite
 .pytest_cache/
