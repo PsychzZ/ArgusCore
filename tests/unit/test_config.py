@@ -1,0 +1,41 @@
+import pytest
+from pydantic import ValidationError
+
+
+def test_settings_loads_from_env(monkeypatch):
+    monkeypatch.setenv("POSTGRES_HOST", "dbhost")
+    monkeypatch.setenv("POSTGRES_PASSWORD", "secret")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
+    monkeypatch.setenv("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/1/abc")
+    monkeypatch.setenv("SEC_USER_AGENT", "Test/1.0 (test@example.com)")
+    from argus.common.config import Settings
+    s = Settings()
+    assert s.postgres_host == "dbhost"
+    assert s.database_url == "postgresql+psycopg://argus:secret@dbhost:5432/argus"
+
+
+def test_settings_requires_api_key(monkeypatch):
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    from argus.common.config import Settings
+    with pytest.raises(ValidationError):
+        Settings()
+
+
+def test_watchlist_loads_yaml(tmp_path):
+    yaml_file = tmp_path / "watchlist.yaml"
+    yaml_file.write_text("""
+watchlist:
+  - ticker: NVDA
+    sector: Semiconductors
+keywords:
+  - "insider buy"
+thresholds:
+  min_relevance_score: 70
+  form4_buy_min_usd: 100000
+  form4_sell_min_usd: 1000000
+""")
+    from argus.common.config import load_watchlist
+    wl = load_watchlist(yaml_file)
+    assert wl.watchlist[0]["ticker"] == "NVDA"
+    assert "insider buy" in wl.keywords
+    assert wl.thresholds["form4_buy_min_usd"] == 100000
