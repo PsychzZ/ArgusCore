@@ -55,7 +55,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["apscheduler.*"]
+module = ["apscheduler.*", "feedparser.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
