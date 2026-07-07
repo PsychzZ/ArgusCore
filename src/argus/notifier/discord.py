@@ -1,10 +1,16 @@
+import asyncio
 from typing import Any
 
+import httpx
+
+from argus.common.logging import get_logger
 from argus.common.models import RawEvent
 
-COLOR_POSITIVE = 3066993   # green
+log = get_logger(__name__)
+
+COLOR_POSITIVE = 3066993  # green
 COLOR_NEGATIVE = 15158332  # red
-COLOR_NEUTRAL = 9807270    # grey
+COLOR_NEUTRAL = 9807270  # grey
 
 _SOURCE_LABEL = {"sec_form4": "SEC Form 4", "rss": "RSS"}
 
@@ -53,11 +59,53 @@ def build_embed(event: RawEvent) -> dict[str, Any]:
         fields.append({"name": "Summary", "value": event.llm_summary})
 
     return {
-        "embeds": [{
-            "title": title[:256],
-            "url": event.url,
-            "color": _color_for(event.sentiment),
-            "fields": fields,
-            "footer": {"text": "ArgusCore • DeepSeek"},
-        }]
+        "embeds": [
+            {
+                "title": title[:256],
+                "url": event.url,
+                "color": _color_for(event.sentiment),
+                "fields": fields,
+                "footer": {"text": "ArgusCore • DeepSeek"},
+            }
+        ]
     }
+
+
+class DiscordClient:
+    def __init__(
+        self, webhook_url: str, max_attempts: int = 3, retry_backoff_base: float = 1.0
+    ) -> None:
+        self._url = webhook_url
+        self._client = httpx.AsyncClient(timeout=httpx.Timeout(15.0))
+        self._max_attempts = max_attempts
+        self._backoff_base = retry_backoff_base
+
+    async def send_embed(self, payload: dict[str, Any]) -> bool:
+        attempt = 0
+        while True:
+            attempt += 1
+            try:
+                res = await self._client.post(self._url, json=payload)
+                if res.status_code == 429:
+                    retry_after = float(res.headers.get("Retry-After", self._backoff_base))
+                    if attempt >= self._max_attempts:
+                        log.warning("discord.rate_limited_giving_up", attempts=attempt)
+                        return False
+                    log.warning("discord.rate_limited", retry_after=retry_after)
+                    await asyncio.sleep(retry_after)
+                    continue
+                res.raise_for_status()
+                return True
+            except httpx.HTTPStatusError as e:
+                status = e.response.status_code
+                retryable = status in {500, 502, 503, 504}
+                if not retryable or attempt >= self._max_attempts:
+                    log.warning("discord.http_error", status=status)
+                    return False
+                await asyncio.sleep(self._backoff_base * (2 ** (attempt - 1)))
+            except Exception:
+                log.exception("discord.send_failed")
+                return False
+
+    async def close(self) -> None:
+        await self._client.aclose()
