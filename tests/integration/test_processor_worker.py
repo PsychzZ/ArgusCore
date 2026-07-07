@@ -49,9 +49,7 @@ async def test_worker_classifies_new_events(db):
 
     llm = AsyncMock()
     llm.classify.return_value = ClassifyResult(
-        classification=Classification(
-            sentiment="positive", relevance_score=85, summary="ok"
-        ),
+        classification=Classification(sentiment="positive", relevance_score=85, summary="ok"),
         meta=LlmCallMeta(
             provider="deepseek",
             model="deepseek-chat",

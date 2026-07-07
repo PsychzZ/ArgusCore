@@ -3,6 +3,7 @@ import json
 
 def test_log_emits_json(capsys):
     from argus.common.logging import get_logger, setup_logging
+
     setup_logging("INFO")
     log = get_logger("test")
     log.info("hello", ticker="NVDA", score=92)
@@ -16,6 +17,7 @@ def test_log_emits_json(capsys):
 
 def test_log_respects_level(capsys):
     from argus.common.logging import get_logger, setup_logging
+
     setup_logging("WARNING")
     log = get_logger("test")
     log.info("should-not-appear")

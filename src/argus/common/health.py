@@ -1,4 +1,5 @@
 from collections.abc import Awaitable, Callable
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 

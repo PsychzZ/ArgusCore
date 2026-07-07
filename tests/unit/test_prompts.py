@@ -33,8 +33,11 @@ def test_classification_summary_too_long():
 
 def test_user_prompt_contains_event_fields():
     e = RawEvent(
-        source="sec_form4", external_id="x", content_hash="h",
-        ticker="NVDA", title="Form 4 - Huang Jensen",
+        source="sec_form4",
+        external_id="x",
+        content_hash="h",
+        ticker="NVDA",
+        title="Form 4 - Huang Jensen",
         body="Transaction Code: P, Shares: 50000, Value: $2.4M",
         url="https://sec.gov/...",
     )
@@ -51,9 +54,12 @@ def test_system_prompt_is_stable():
 
 def test_llm_call_meta_dataclass():
     meta = LlmCallMeta(
-        provider="deepseek", model="deepseek-chat",
-        prompt_tokens=100, completion_tokens=30,
-        cost_usd=0.0001, latency_ms=480,
+        provider="deepseek",
+        model="deepseek-chat",
+        prompt_tokens=100,
+        completion_tokens=30,
+        cost_usd=0.0001,
+        latency_ms=480,
     )
     assert meta.provider == "deepseek"
     assert meta.prompt_tokens == 100
@@ -61,8 +67,14 @@ def test_llm_call_meta_dataclass():
 
 def test_classify_result_dataclass():
     cls = Classification(sentiment="positive", relevance_score=92, summary="ok")
-    meta = LlmCallMeta(provider="deepseek", model="deepseek-chat",
-                       prompt_tokens=10, completion_tokens=5, cost_usd=0.0001, latency_ms=100)
+    meta = LlmCallMeta(
+        provider="deepseek",
+        model="deepseek-chat",
+        prompt_tokens=10,
+        completion_tokens=5,
+        cost_usd=0.0001,
+        latency_ms=100,
+    )
     result = ClassifyResult(classification=cls, meta=meta)
     assert result.classification.relevance_score == 92
     assert result.meta.provider == "deepseek"

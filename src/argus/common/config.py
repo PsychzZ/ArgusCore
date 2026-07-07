@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     watchlist_path: str = "watchlist.yaml"
     feeds_path: str = "feeds.yaml"
 
-    @computed_field  # type: ignore[prop-decorator]
+    @computed_field  # type: ignore[misc]
     @property
     def database_url(self) -> str:
         return (

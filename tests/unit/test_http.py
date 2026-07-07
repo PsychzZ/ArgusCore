@@ -1,11 +1,11 @@
 import httpx
 import pytest
-import respx
 
 
 @pytest.mark.asyncio
 async def test_with_retry_succeeds_after_503():
     from argus.common.http import with_retry
+
     call_count = 0
 
     @with_retry(max_attempts=3, retryable_status={503})
@@ -26,6 +26,7 @@ async def test_with_retry_succeeds_after_503():
 @pytest.mark.asyncio
 async def test_with_retry_no_retry_on_404():
     from argus.common.http import with_retry
+
     call_count = 0
 
     @with_retry(max_attempts=3, retryable_status={503})
@@ -44,6 +45,7 @@ async def test_with_retry_no_retry_on_404():
 @pytest.mark.asyncio
 async def test_with_retry_max_attempts_exceeded():
     from argus.common.http import with_retry
+
     call_count = 0
 
     @with_retry(max_attempts=2, retryable_status={503}, backoff_base=0.01)

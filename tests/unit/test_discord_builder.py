@@ -9,10 +9,15 @@ from argus.notifier.discord import (
 
 def make_event(**kwargs):
     base = dict(
-        source="sec_form4", external_id="x", content_hash="h",
-        ticker="NVDA", title="Form 4 - Huang",
-        body="Transaction: P", url="https://sec.gov/...",
-        sentiment="positive", relevance_score=92,
+        source="sec_form4",
+        external_id="x",
+        content_hash="h",
+        ticker="NVDA",
+        title="Form 4 - Huang",
+        body="Transaction: P",
+        url="https://sec.gov/...",
+        sentiment="positive",
+        relevance_score=92,
         llm_summary="CEO Jensen Huang bought 50,000 shares for $2.4M.",
         poller_meta={"filer_name": "Huang Jensen", "transaction_type": "P", "value_usd": 2_410_000},
     )

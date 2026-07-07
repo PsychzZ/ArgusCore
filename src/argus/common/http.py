@@ -3,7 +3,9 @@ import functools
 import random
 from collections.abc import Awaitable, Callable
 from typing import ParamSpec, TypeVar
+
 import httpx
+
 from argus.common.logging import get_logger
 
 log = get_logger(__name__)
@@ -13,7 +15,7 @@ T = TypeVar("T")
 
 def with_retry(
     max_attempts: int = 3,
-    retryable_status: set[int] = {429, 500, 502, 503, 504},
+    retryable_status: frozenset[int] = frozenset({429, 500, 502, 503, 504}),
     backoff_base: float = 1.0,
 ) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
     def decorator(fn: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
@@ -29,11 +31,16 @@ def with_retry(
                         raise
                     delay = backoff_base * (2 ** (attempt - 1)) + random.uniform(0, 0.25)
                     log.warning(
-                        "http_retry", attempt=attempt, status=e.response.status_code,
-                        delay=delay, error=str(e),
+                        "http_retry",
+                        attempt=attempt,
+                        status=e.response.status_code,
+                        delay=delay,
+                        error=str(e),
                     )
                     await asyncio.sleep(delay)
+
         return wrapper
+
     return decorator
 
 

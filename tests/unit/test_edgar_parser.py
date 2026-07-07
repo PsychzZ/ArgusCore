@@ -1,5 +1,6 @@
 from pathlib import Path
-from argus.sec_poller.edgar import parse_form4, Form4Data
+
+from argus.sec_poller.edgar import Form4Data, parse_form4
 
 FIXTURE = Path(__file__).parent.parent / "fixtures" / "sec" / "form4_sample.xml"
 
@@ -20,12 +21,15 @@ def test_parse_form4_extracts_fields():
 def test_parse_form4_handles_sale():
     # Modify fixture in-memory: replace P -> S
     xml = FIXTURE.read_text()
-    xml = xml.replace("<transactionCode>P</transactionCode>", "<transactionCode>S</transactionCode>")
+    xml = xml.replace(
+        "<transactionCode>P</transactionCode>", "<transactionCode>S</transactionCode>"
+    )
     data = parse_form4(xml.encode())
     assert data.transaction_code == "S"
 
 
 def test_parse_form4_raises_on_invalid_xml():
     import pytest
+
     with pytest.raises(ValueError):
         parse_form4(b"not xml")

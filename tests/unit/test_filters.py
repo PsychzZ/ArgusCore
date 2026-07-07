@@ -5,20 +5,27 @@ from argus.processor.filters import WatchlistFilter
 
 def make_event(ticker=None, title="t", body="b"):
     return RawEvent(
-        source="rss", external_id="x", content_hash="h",
-        ticker=ticker, title=title, body=body, url="u",
+        source="rss",
+        external_id="x",
+        content_hash="h",
+        ticker=ticker,
+        title=title,
+        body=body,
+        url="u",
     )
 
 
 def make_wl():
-    return WatchlistConfig.model_validate({
-        "watchlist": [
-            {"ticker": "NVDA", "sector": "Semiconductors"},
-            {"ticker": "MRNA", "sector": "Biotech"},
-        ],
-        "keywords": ["insider buy", "Phase 3"],
-        "thresholds": {},
-    })
+    return WatchlistConfig.model_validate(
+        {
+            "watchlist": [
+                {"ticker": "NVDA", "sector": "Semiconductors"},
+                {"ticker": "MRNA", "sector": "Biotech"},
+            ],
+            "keywords": ["insider buy", "Phase 3"],
+            "thresholds": {},
+        }
+    )
 
 
 def test_ticker_match_boost():

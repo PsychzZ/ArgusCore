@@ -17,9 +17,7 @@ def setup_logging(level: str = "INFO") -> None:
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.processors.JSONRenderer(),
         ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, level.upper())
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(getattr(logging, level.upper())),
         logger_factory=structlog.PrintLoggerFactory(),
         cache_logger_on_first_use=False,
     )

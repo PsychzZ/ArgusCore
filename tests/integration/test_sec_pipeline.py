@@ -32,7 +32,9 @@ async def db(testcontainer_postgres):
 async def test_pipeline_inserts_filtered_event(db):
     _engine, sessions = db
     client = AsyncMock()
-    client.list_recent_form4_urls.return_value = ["https://www.sec.gov/Archives/edgar/data/123/abc/index.xml"]
+    client.list_recent_form4_urls.return_value = [
+        "https://www.sec.gov/Archives/edgar/data/123/abc/index.xml"
+    ]
     client.fetch_filing_xml.return_value = FIXTURE.read_bytes()
 
     pipeline = SecPipeline(
@@ -66,7 +68,8 @@ async def test_pipeline_skips_below_threshold(db):
     client.fetch_filing_xml.return_value = xml.encode()
 
     pipeline = SecPipeline(
-        client=client, session_factory=sessions,
+        client=client,
+        session_factory=sessions,
         form4_filter=Form4Filter(buy_min_usd=100_000, sell_min_usd=1_000_000),
         source_cursor_key="sec_form4",
     )
@@ -79,7 +82,8 @@ async def test_pipeline_writes_cursor(db):
     client = AsyncMock()
     client.list_recent_form4_urls.return_value = []
     pipeline = SecPipeline(
-        client=client, session_factory=sessions,
+        client=client,
+        session_factory=sessions,
         form4_filter=Form4Filter(buy_min_usd=100_000, sell_min_usd=1_000_000),
         source_cursor_key="sec_form4",
     )

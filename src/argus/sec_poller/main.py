@@ -60,9 +60,7 @@ async def main() -> None:
         scheduler_running=True,
         last_run_iso=None,
     )
-    config = uvicorn.Config(
-        app, host="0.0.0.0", port=settings.health_port, log_config=None
-    )
+    config = uvicorn.Config(app, host="0.0.0.0", port=settings.health_port, log_config=None)
     server = uvicorn.Server(config)
 
     try:

@@ -34,11 +34,13 @@ async def db(testcontainer_postgres: str) -> AsyncIterator[async_sessionmaker[As
 
 @pytest.fixture
 def watchlist() -> WatchlistConfig:
-    return WatchlistConfig.model_validate({
-        "watchlist": [{"ticker": "NVDA", "sector": "Semiconductors"}],
-        "keywords": ["Phase 3"],
-        "thresholds": {},
-    })
+    return WatchlistConfig.model_validate(
+        {
+            "watchlist": [{"ticker": "NVDA", "sector": "Semiconductors"}],
+            "keywords": ["Phase 3"],
+            "thresholds": {},
+        }
+    )
 
 
 class _FakeResponse:
