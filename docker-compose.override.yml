@@ -1,0 +1,20 @@
+services:
+  sec-poller:
+    volumes:
+      - ./src:/app/src:ro
+      - ./watchlist.yaml:/app/watchlist.yaml:ro
+      - ./feeds.yaml:/app/feeds.yaml:ro
+  rss-poller:
+    volumes:
+      - ./src:/app/src:ro
+      - ./watchlist.yaml:/app/watchlist.yaml:ro
+      - ./feeds.yaml:/app/feeds.yaml:ro
+  processor:
+    volumes:
+      - ./src:/app/src:ro
+      - ./alembic:/app/alembic:ro
+      - ./watchlist.yaml:/app/watchlist.yaml:ro
+  notifier:
+    volumes:
+      - ./src:/app/src:ro
+      - ./watchlist.yaml:/app/watchlist.yaml:ro

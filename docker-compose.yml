@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-argus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-argus}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-argus}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sec-poller:
+    build: .
+    env_file: .env
+    command: ["python", "-m", "argus.sec_poller.main"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  rss-poller:
+    build: .
+    env_file: .env
+    command: ["python", "-m", "argus.rss_poller.main"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  processor:
+    build: .
+    env_file: .env
+    command: ["sh", "-c", "alembic upgrade head && python -m argus.processor.main"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notifier:
+    build: .
+    env_file: .env
+    command: ["python", "-m", "argus.notifier.main"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
