@@ -85,6 +85,10 @@ Test pyramid: `tests/unit` (fast), `tests/integration` (testcontainers + Postgre
 
 Python 3.12, httpx, APScheduler, SQLAlchemy 2.0 (async), Alembic, Pydantic v2, structlog, feedparser, lxml, FastAPI (mini healthcheck), pytest + testcontainers, ruff + mypy, uv.
 
+## E2E Testing
+
+The E2E test (`tests/e2e/test_full_flow.py`) requires Docker and validates the full pipeline against mock SEC/LLM/Discord endpoints. It is environment-specific and skipped by default — implement the mock expectations on first deployment to verify end-to-end behavior.
+
 ## License
 
 MIT
