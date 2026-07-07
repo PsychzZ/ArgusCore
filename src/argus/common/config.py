@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     # Operational
     log_level: str = "INFO"
     health_port: int = 8080
+    watchlist_path: str = "watchlist.yaml"
+    feeds_path: str = "feeds.yaml"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
