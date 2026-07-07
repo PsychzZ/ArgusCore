@@ -21,8 +21,11 @@ async def db(testcontainer_postgres: str) -> AsyncIterator[async_sessionmaker[As
         await conn.run_sync(Base.metadata.create_all)
         # Truncate to start from a clean slate — the postgres testcontainer is
         # session-scoped and shared with the other integration tests, which
-        # would otherwise leak rows into our assertions.
-        for table in Base.metadata.sorted_tables:
+        # would otherwise leak rows into our assertions. ``sorted_tables`` is
+        # parent-first; reverse so child rows (notifications, llm_calls) are
+        # deleted before their raw_events parents, avoiding FK violations on
+        # tables without ON DELETE CASCADE.
+        for table in reversed(Base.metadata.sorted_tables):
             await conn.execute(table.delete())
     sessions = create_session_factory(engine)
     yield sessions

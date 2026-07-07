@@ -19,7 +19,10 @@ async def db(testcontainer_postgres):
         # Truncate so each test starts from a clean slate — the postgres
         # testcontainer is session-scoped and shared with test_db.py, which
         # leaves rows behind that would otherwise leak into our assertions.
-        for table in Base.metadata.sorted_tables:
+        # ``sorted_tables`` is parent-first; child tables (notifications,
+        # llm_calls) must be deleted *before* their raw_events parents to
+        # avoid FK violations on tables that lack ON DELETE CASCADE.
+        for table in reversed(Base.metadata.sorted_tables):
             await conn.execute(table.delete())
     sessions = create_session_factory(engine)
     yield engine, sessions
