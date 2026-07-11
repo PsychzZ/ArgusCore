@@ -43,7 +43,13 @@ def _apply_python_defaults(target: Base, args: tuple[Any, ...], kwargs: dict[str
         if getattr(target, col.name, None) is not None:
             continue
         arg = col.default.arg
-        value = arg(None) if callable(arg) else arg
+        if callable(arg):
+            try:
+                value = arg()
+            except TypeError:
+                value = arg(None)
+        else:
+            value = arg
         # The ``init`` event fires from inside ``_initialize_instance`` before
         # SQLAlchemy's attribute instrumentation is fully wired, so the public
         # ``setattr`` would raise ``'NoneType' object has no attribute 'set'``.
