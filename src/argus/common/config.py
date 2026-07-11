@@ -55,7 +55,14 @@ class WatchlistConfig(BaseModel):
 
 def load_watchlist(path: str | Path) -> WatchlistConfig:
     """Load a watchlist YAML file and return a typed WatchlistConfig."""
-    data: dict[str, Any] = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    data: dict[str, Any] = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    thresholds = data.get("thresholds") or {}
+    data["thresholds"] = {
+        "min_relevance_score": 70,
+        "form4_buy_min_usd": 100_000,
+        "form4_sell_min_usd": 1_000_000,
+        **thresholds,
+    }
     return WatchlistConfig.model_validate(data)
 
 
