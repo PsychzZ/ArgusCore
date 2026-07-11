@@ -42,6 +42,8 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("status", sa.String(16), server_default=sa.text("'new'"), nullable=False),
+        sa.Column("error_message", sa.Text),
+        sa.Column("retry_count", sa.Integer, server_default=sa.text("0"), nullable=False),
         sa.Column("relevance_score", sa.Integer),
         sa.Column("sentiment", sa.String(16)),
         sa.Column("llm_summary", sa.Text),
