@@ -51,3 +51,22 @@ def test_thresholds_include_instant_score_default(tmp_path):
     p.write_text("watchlist: []\nkeywords: []\n", encoding="utf-8")
     cfg = load_watchlist(p)
     assert cfg.thresholds["instant_score"] == 90
+
+
+def test_thresholds_include_form4_cluster_min_filings_default(tmp_path):
+    from argus.common.config import load_watchlist
+
+    p = tmp_path / "watchlist.yaml"
+    p.write_text("watchlist: []\nkeywords: []\n", encoding="utf-8")
+    cfg = load_watchlist(p)
+    assert cfg.thresholds["form4_cluster_min_filings"] == 2
+
+
+def test_settings_default_form4_cluster_window(monkeypatch):
+    monkeypatch.setenv("POSTGRES_PASSWORD", "secret")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
+    monkeypatch.setenv("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/1/abc")
+    monkeypatch.setenv("SEC_USER_AGENT", "Test/1.0 (test@example.com)")
+    from argus.common.config import Settings
+
+    assert Settings().form4_cluster_window_h == 48

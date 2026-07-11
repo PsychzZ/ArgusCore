@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     health_port: int = 8080
     digest_hour: int = 18
+    form4_cluster_window_h: int = 48
     watchlist_path: str = "watchlist.yaml"
     feeds_path: str = "feeds.yaml"
 
@@ -53,6 +54,7 @@ class WatchlistConfig(BaseModel):
             "instant_score": 90,
             "form4_buy_min_usd": 100_000,
             "form4_sell_min_usd": 1_000_000,
+            "form4_cluster_min_filings": 2,
         }
     )
 
@@ -66,6 +68,7 @@ def load_watchlist(path: str | Path) -> WatchlistConfig:
         "instant_score": 90,
         "form4_buy_min_usd": 100_000,
         "form4_sell_min_usd": 1_000_000,
+        "form4_cluster_min_filings": 2,
         **thresholds,
     }
     return WatchlistConfig.model_validate(data)

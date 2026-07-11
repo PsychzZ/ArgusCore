@@ -21,3 +21,4 @@ thresholds:
   instant_score: 90  # score >= instant_score pings immediately; below goes to the daily digest
   form4_buy_min_usd: 100000
   form4_sell_min_usd: 1000000
+  form4_cluster_min_filings: 2  # >= N same-ticker Form 4 filings within FORM4_CLUSTER_WINDOW_H form a cluster
