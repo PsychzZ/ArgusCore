@@ -1,10 +1,11 @@
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock
 
 import pytest
 from sqlalchemy import select
 
 from argus.common.db import create_engine, create_session_factory
-from argus.common.models import Base, PollingState, RawEvent
+from argus.common.models import Base, RawEvent
 from argus.notifier.digest import DigestJob
 
 
@@ -54,8 +55,22 @@ async def test_digest_sends_band_and_marks_sent(db):
         assert by_id["in-band"].status == "sent"
         assert by_id["instant"].status == "processed"  # belongs to instant path
         assert by_id["low"].status == "processed"
-        cursor = await session.get(PollingState, "digest:last_sent")
-        assert cursor is not None
+
+
+async def test_digest_picks_up_late_classified_events(db):
+    discord = AsyncMock()
+    discord.send_embed.return_value = True
+    async with db() as session:
+        event = _mk("late", 75)
+        event.fetched_at = datetime.now(UTC) - timedelta(hours=30)
+        session.add(event)
+        await session.commit()
+
+    job = DigestJob(sessions=db, discord=discord, min_score=70, instant_score=90)
+    assert await job.run_once() == 1
+    async with db() as session:
+        result = await session.execute(select(RawEvent))
+        assert result.scalars().one().status == "sent"
 
 
 async def test_digest_empty_band_sends_nothing(db):
@@ -65,7 +80,7 @@ async def test_digest_empty_band_sends_nothing(db):
     discord.send_embed.assert_not_called()
 
 
-async def test_digest_send_failure_keeps_cursor(db):
+async def test_digest_send_failure_keeps_events_processed(db):
     discord = AsyncMock()
     discord.send_embed.return_value = False
     async with db() as session:
@@ -75,6 +90,5 @@ async def test_digest_send_failure_keeps_cursor(db):
     job = DigestJob(sessions=db, discord=discord, min_score=70, instant_score=90)
     assert await job.run_once() == 0
     async with db() as session:
-        assert await session.get(PollingState, "digest:last_sent") is None
         result = await session.execute(select(RawEvent))
         assert result.scalars().one().status == "processed"

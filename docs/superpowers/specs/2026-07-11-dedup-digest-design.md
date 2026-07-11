@@ -45,13 +45,17 @@ Neuer Threshold `instant_score` (Default **90**) in `watchlist.yaml`
 Digest-Job (eigener Cron im Notifier, Default 18:00 UTC, konfigurierbar via
 Env `DIGEST_HOUR`):
 
-- sammelt alle `processed`-Events seit dem letzten Digest-Lauf im
-  Digest-Score-Band, sortiert nach Score absteigend,
+- sammelt alle `processed`-Events im Digest-Score-Band, sortiert nach Score
+  absteigend,
 - sendet **ein** Discord-Embed mit max. 10 Einträgen (Titel, Ticker, Score,
   Link); mehr als 10 → Fußzeile „+N weitere",
-- sendet nichts, wenn keine Events anliegen,
-- Cursor (`digest:last_sent`, ISO-Timestamp) in `polling_state`; existiert
-  noch kein Cursor (Erstlauf), werden die letzten 24 h eingesammelt.
+- sendet nichts, wenn keine Events anliegen.
+
+Die Auswahl erfolgt rein über Status + Score-Band, ohne Zeitfenster oder
+Cursor: Da erfolgreich gesendete Events auf `sent` gesetzt werden, kann kein
+Event doppelt in den Digest gelangen — und Events, die erst nach einem
+Digest-Lauf klassifiziert werden, gehen nicht verloren (ein
+`fetched_at`-Cursor würde sie für immer überspringen).
 
 Bereits sofort gepingte Events (≥ instant_score) erscheinen nicht nochmal im
 Digest.
@@ -71,7 +75,7 @@ Rückwärtskompatibel; bestehende Zeilen unverändert.
 - Dedup-Fehler (z. B. DB-Timeout bei Kandidatensuche) → Event wird normal
   klassifiziert (fail open, lieber ein Duplikat zu viel als ein Event
   verloren).
-- Digest-Sendefehler → Cursor wird NICHT vorgerückt; nächster Lauf versucht
+- Digest-Sendefehler → Events bleiben `processed`; nächster Lauf versucht
   dieselben Events erneut. Discord-Retry übernimmt der bestehende
   DiscordClient.
 
@@ -88,5 +92,5 @@ Unit:
 Integration:
 
 - Processor markiert Duplikat und macht keinen LLM-Call.
-- Digest-Lauf end-to-end gegen DB-Fixtures inkl. Cursor-Fortschritt und
-  Nicht-Fortschritt bei Sendefehler.
+- Digest-Lauf end-to-end gegen DB-Fixtures inkl. Statuswechsel auf `sent`
+  und Retry-Verhalten (Events bleiben `processed`) bei Sendefehler.
