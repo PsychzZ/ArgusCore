@@ -31,7 +31,9 @@ def parse_form4(xml_bytes: bytes) -> Form4Data:
 
     ticker = _find("issuerTradingSymbol")
     filer_name = _find("rptOwnerName")
-    filer_role = _find("officerTitle") or _find("isDirector")
+    filer_role = _find("officerTitle") or (
+        "Director" if (_find("isDirector") or "").lower() == "true" else ""
+    )
     transaction_code = _find("transactionCode")
     shares_str = _find("transactionShares/value")
     price_str = _find("transactionPricePerShare/value")
