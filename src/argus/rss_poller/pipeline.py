@@ -22,7 +22,7 @@ class RssPipeline:
     """Fetch an RSS feed, filter by ticker/keyword, and persist survivors.
 
     Idempotent: a re-run with the same items will not insert duplicates thanks
-    to the ``(source, external_id)`` unique constraint on ``raw_events``, and a
+    to the ``(source, external_id)`` unique constraint on ``raw_events``. A
     ``PollingState`` cursor row keyed ``rss:<feed url>`` is upserted each run.
     """
 
