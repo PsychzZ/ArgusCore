@@ -33,10 +33,11 @@ class Classifier:
 
         try:
             result = await self._llm.classify(event)
-        except Exception:
+        except Exception as e:
             log.exception("processor.classify_failed", event_id=str(event.id))
-            event.status = "failed"
             event.retry_count += 1
+            event.error_message = str(e)
+            event.status = "failed" if event.retry_count >= 3 else "new"
             return
 
         cls = result.classification
