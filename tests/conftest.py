@@ -17,12 +17,13 @@ def pytest_asyncio_loop_factories(
     Psycopg 3's async mode cannot run on ``ProactorEventLoop`` (the Windows
     default). Registering a ``SelectorEventLoop`` factory through the modern
     ``pytest_asyncio_loop_factories`` hook lets the real-Postgres integration
-    tests (testcontainers) drive async I/O through psycopg. POSIX keeps its
-    default Selector loop, so we return ``None`` there to opt out.
+    tests (testcontainers) drive async I/O through psycopg. On non-Windows
+    platforms we still need to provide a mapping for pytest-asyncio>=1.4, so
+    we register the default ``asyncio.new_event_loop`` factory.
     """
     if sys.platform == "win32":
         return {"selector": lambda: asyncio.SelectorEventLoop()}
-    return None
+    return {"default": asyncio.new_event_loop}
 
 
 @pytest.fixture(scope="session")
