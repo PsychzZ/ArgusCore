@@ -13,6 +13,7 @@ from argus.common.health import LastRunTracker, create_app, tracked
 from argus.common.logging import get_logger, setup_logging
 from argus.notifier.digest import DigestJob
 from argus.notifier.discord import DiscordClient
+from argus.notifier.form4_cluster import Form4ClusterJob
 from argus.notifier.worker import NotifierWorker
 
 log = get_logger(__name__)
@@ -47,6 +48,12 @@ async def main() -> None:
         min_score=watchlist.thresholds["min_relevance_score"],
         instant_score=watchlist.thresholds["instant_score"],
     )
+    cluster_job = Form4ClusterJob(
+        sessions=sessions,
+        discord=discord,
+        window_h=settings.form4_cluster_window_h,
+        min_filings=watchlist.thresholds["form4_cluster_min_filings"],
+    )
 
     last_run = LastRunTracker()
     scheduler = AsyncIOScheduler()
@@ -54,6 +61,10 @@ async def main() -> None:
     scheduler.add_job(
         tracked(digest.run_once, last_run),
         CronTrigger(hour=settings.digest_hour, minute=0),
+    )
+    scheduler.add_job(
+        tracked(cluster_job.run_once, last_run),
+        CronTrigger(hour="*", minute=5),
     )
     scheduler.start()
     log.info("notifier.scheduler_started")
