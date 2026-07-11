@@ -106,6 +106,7 @@ class SecPipeline:
                     url=url,
                     poller_meta={
                         "filer_name": data.filer_name,
+                        "filer_role": data.filer_role,
                         "transaction_type": data.transaction_code,
                         "value_usd": data.value_usd,
                     },
