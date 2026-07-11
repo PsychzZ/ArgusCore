@@ -152,4 +152,6 @@ class Form4Cluster(Base):
     window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     window_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     alerted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_now
+    )
