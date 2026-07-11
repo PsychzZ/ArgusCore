@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>TechCrunch AI</title>
+    <item>
+      <title>Nvidia announces new AI chip NVDA-X</title>
+      <link>https://techcrunch.com/2026/07/04/nvidia-x</link>
+      <guid>tc-001</guid>
+      <pubDate>Fri, 04 Jul 2026 10:00:00 GMT</pubDate>
+      <description>Nvidia today announced its next-gen chip.</description>
+    </item>
+    <item>
+      <title>Random sector news</title>
+      <link>https://techcrunch.com/2026/07/04/random</link>
+      <guid>tc-002</guid>
+      <pubDate>Fri, 04 Jul 2026 09:00:00 GMT</pubDate>
+      <description>Nothing relevant here.</description>
+    </item>
+  </channel>
+</rss>

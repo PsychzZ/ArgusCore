@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: argus
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: argus
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "argus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432"
+
+  mock-sec:
+    image: kennethreitz/httpbin:latest
+    ports:
+      - "80"
+
+  mock-discord:
+    image: mockserver/mockserver:latest
+    ports:
+      - "1080"
+
+  mock-llm:
+    image: mockserver/mockserver:latest
+    ports:
+      - "1080"

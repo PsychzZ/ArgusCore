@@ -1,0 +1,22 @@
+watchlist:
+  - ticker: NVDA
+    sector: Semiconductors
+  - ticker: AMD
+    sector: Semiconductors
+  - ticker: TSLA
+    sector: Automotive
+  - ticker: PLTR
+    sector: AI
+  - ticker: MRNA
+    sector: Biotech
+
+keywords:
+  - "insider buy"
+  - "FDA approval"
+  - "Phase 3"
+  - "share buyback program"
+
+thresholds:
+  min_relevance_score: 70
+  form4_buy_min_usd: 100000
+  form4_sell_min_usd: 1000000

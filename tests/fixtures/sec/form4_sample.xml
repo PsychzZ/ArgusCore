@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<RPT>
+  <SECForm4>
+    <issuer>
+      <issuerCik>0001045810</issuerCik>
+      <issuerName>NVIDIA CORP</issuerName>
+      <issuerTradingSymbol>NVDA</issuerTradingSymbol>
+    </issuer>
+    <reportingOwner>
+      <reportingOwnerId>
+        <rptOwnerCik>0001237446</rptOwnerCik>
+        <rptOwnerName>HUANG JENSEN</rptOwnerName>
+      </reportingOwnerId>
+      <reportingOwnerRelationship>
+        <isDirector>false</isDirector>
+        <isOfficer>true</isOfficer>
+        <officerTitle>CEO</officerTitle>
+      </reportingOwnerRelationship>
+    </reportingOwner>
+    <nonDerivativeTable>
+      <nonDerivativeTransaction>
+        <transactionDate>
+          <value>2026-06-15</value>
+        </transactionDate>
+        <transactionCoding>
+          <transactionFormType>4</transactionFormType>
+          <transactionCode>P</transactionCode>
+          <equitySwapInvolved>false</equitySwapInvolved>
+        </transactionCoding>
+        <transactionAmounts>
+          <transactionShares>
+            <value>50000</value>
+          </transactionShares>
+          <transactionPricePerShare>
+            <value>48.20</value>
+          </transactionPricePerShare>
+          <transactionAcquiredDisposedCode>
+            <value>A</value>
+          </transactionAcquiredDisposedCode>
+        </transactionAmounts>
+        <postTransactionTransactionAmounts>
+          <sharesOwnedFollowingTransaction>
+            <value>1234567</value>
+          </sharesOwnedFollowingTransaction>
+        </postTransactionTransactionAmounts>
+      </nonDerivativeTransaction>
+    </nonDerivativeTable>
+  </SECForm4>
+</RPT>
