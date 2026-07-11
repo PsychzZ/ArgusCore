@@ -8,7 +8,7 @@ from sqlalchemy import text
 
 from argus.common.config import Settings, load_watchlist
 from argus.common.db import create_engine, create_session_factory
-from argus.common.health import create_app
+from argus.common.health import LastRunTracker, create_app, tracked
 from argus.common.logging import get_logger, setup_logging
 from argus.sec_poller.edgar import EdgarClient
 from argus.sec_poller.pipeline import Form4Filter, SecPipeline
@@ -50,15 +50,17 @@ async def main() -> None:
         ),
     )
 
+    last_run = LastRunTracker()
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(run_once, CronTrigger(hour="*", minute=0), args=[pipeline])
+    job = tracked(lambda: run_once(pipeline), last_run)
+    scheduler.add_job(job, CronTrigger(hour="*", minute=0))
     scheduler.start()
     log.info("sec.scheduler_started")
 
     app = create_app(
         db_ping=lambda: ping(engine),
         scheduler_running=True,
-        last_run_iso=None,
+        last_run=last_run,
     )
     config = uvicorn.Config(app, host="0.0.0.0", port=settings.health_port, log_config=None)
     server = uvicorn.Server(config)

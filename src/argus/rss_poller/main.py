@@ -7,7 +7,7 @@ from sqlalchemy import text
 
 from argus.common.config import Settings, load_feeds, load_watchlist
 from argus.common.db import create_engine, create_session_factory
-from argus.common.health import create_app
+from argus.common.health import LastRunTracker, create_app, tracked
 from argus.common.http import make_client
 from argus.common.logging import get_logger, setup_logging
 from argus.rss_poller.pipeline import RssPipeline
@@ -50,12 +50,14 @@ async def main() -> None:
 
     interval = feeds_cfg.get("defaults", {}).get("poll_interval_seconds", 600)
 
+    last_run = LastRunTracker()
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(run_all, IntervalTrigger(seconds=interval), args=[pipelines])
+    job = tracked(lambda: run_all(pipelines), last_run)
+    scheduler.add_job(job, IntervalTrigger(seconds=interval))
     scheduler.start()
     log.info("rss.scheduler_started", feed_count=len(pipelines), interval_s=interval)
 
-    app = create_app(db_ping=lambda: ping(engine), scheduler_running=True, last_run_iso=None)
+    app = create_app(db_ping=lambda: ping(engine), scheduler_running=True, last_run=last_run)
     config = uvicorn.Config(app, host="0.0.0.0", port=settings.health_port, log_config=None)
     server = uvicorn.Server(config)
 

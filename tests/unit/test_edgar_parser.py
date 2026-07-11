@@ -28,6 +28,24 @@ def test_parse_form4_handles_sale():
     assert data.transaction_code == "S"
 
 
+def test_parse_form4_director_flag_numeric():
+    # EDGAR commonly emits <isDirector>1</isDirector> instead of "true"
+    xml = FIXTURE.read_text()
+    xml = xml.replace("<isOfficer>true</isOfficer>", "<isOfficer>0</isOfficer>")
+    xml = xml.replace("<officerTitle>CEO</officerTitle>", "")
+    xml = xml.replace("<isDirector>false</isDirector>", "<isDirector>1</isDirector>")
+    data = parse_form4(xml.encode())
+    assert data.filer_role == "Director"
+
+
+def test_parse_form4_director_flag_true_string():
+    xml = FIXTURE.read_text()
+    xml = xml.replace("<officerTitle>CEO</officerTitle>", "")
+    xml = xml.replace("<isDirector>false</isDirector>", "<isDirector>true</isDirector>")
+    data = parse_form4(xml.encode())
+    assert data.filer_role == "Director"
+
+
 def test_parse_form4_raises_on_invalid_xml():
     import pytest
 

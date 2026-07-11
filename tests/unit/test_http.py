@@ -43,6 +43,64 @@ async def test_with_retry_no_retry_on_404():
 
 
 @pytest.mark.asyncio
+async def test_with_retry_honors_retry_after_header(monkeypatch):
+    import argus.common.http as http_mod
+    from argus.common.http import with_retry
+
+    sleeps = []
+
+    async def fake_sleep(delay):
+        sleeps.append(delay)
+
+    monkeypatch.setattr(http_mod.asyncio, "sleep", fake_sleep)
+    call_count = 0
+
+    @with_retry(max_attempts=2, backoff_base=100.0)
+    async def fetch():
+        nonlocal call_count
+        call_count += 1
+        if call_count < 2:
+            raise httpx.HTTPStatusError(
+                "429",
+                request=httpx.Request("GET", "https://x"),
+                response=httpx.Response(429, headers={"Retry-After": "7"}),
+            )
+        return "ok"
+
+    assert await fetch() == "ok"
+    assert sleeps == [7.0]
+
+
+@pytest.mark.asyncio
+async def test_with_retry_caps_excessive_retry_after(monkeypatch):
+    import argus.common.http as http_mod
+    from argus.common.http import with_retry
+
+    sleeps = []
+
+    async def fake_sleep(delay):
+        sleeps.append(delay)
+
+    monkeypatch.setattr(http_mod.asyncio, "sleep", fake_sleep)
+    call_count = 0
+
+    @with_retry(max_attempts=2)
+    async def fetch():
+        nonlocal call_count
+        call_count += 1
+        if call_count < 2:
+            raise httpx.HTTPStatusError(
+                "429",
+                request=httpx.Request("GET", "https://x"),
+                response=httpx.Response(429, headers={"Retry-After": "3600"}),
+            )
+        return "ok"
+
+    assert await fetch() == "ok"
+    assert sleeps == [60.0]
+
+
+@pytest.mark.asyncio
 async def test_make_client_sets_user_agent_and_follows_redirects():
     from argus.common.http import make_client
 

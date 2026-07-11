@@ -12,6 +12,19 @@ log = get_logger(__name__)
 P = ParamSpec("P")
 T = TypeVar("T")
 
+MAX_RETRY_AFTER_S = 60.0
+
+
+def _parse_retry_after(response: httpx.Response) -> float | None:
+    value = response.headers.get("Retry-After")
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        # HTTP-date variant — rare from our APIs; fall back to backoff
+        return None
+
 
 def with_retry(
     max_attempts: int = 3,
@@ -30,6 +43,9 @@ def with_retry(
                     if e.response.status_code not in retryable_status or attempt >= max_attempts:
                         raise
                     delay = backoff_base * (2 ** (attempt - 1)) + random.uniform(0, 0.25)
+                    retry_after = _parse_retry_after(e.response)
+                    if retry_after is not None:
+                        delay = min(retry_after, MAX_RETRY_AFTER_S)
                     log.warning(
                         "http_retry",
                         attempt=attempt,

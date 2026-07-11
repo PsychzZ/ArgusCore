@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from argus.common.config import Settings, load_watchlist
 from argus.common.db import create_engine, create_session_factory
-from argus.common.health import create_app
+from argus.common.health import LastRunTracker, create_app, tracked
 from argus.common.logging import get_logger, setup_logging
 from argus.llm import create_provider
 from argus.processor.classifier import Classifier
@@ -39,12 +39,13 @@ async def main() -> None:
     classifier = Classifier(filter_=WatchlistFilter(watchlist), llm=llm)
     worker = ProcessorWorker(sessions=sessions, classifier=classifier)
 
+    last_run = LastRunTracker()
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(worker.run_once, IntervalTrigger(seconds=30))
+    scheduler.add_job(tracked(worker.run_once, last_run), IntervalTrigger(seconds=30))
     scheduler.start()
     log.info("processor.scheduler_started")
 
-    app = create_app(db_ping=lambda: ping(engine), scheduler_running=True, last_run_iso=None)
+    app = create_app(db_ping=lambda: ping(engine), scheduler_running=True, last_run=last_run)
     config = uvicorn.Config(app, host="0.0.0.0", port=settings.health_port, log_config=None)
     server = uvicorn.Server(config)
 
