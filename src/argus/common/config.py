@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,7 +33,6 @@ class Settings(BaseSettings):
     watchlist_path: str = "watchlist.yaml"
     feeds_path: str = "feeds.yaml"
 
-    @computed_field  # type: ignore[misc]
     @property
     def database_url(self) -> str:
         return (
