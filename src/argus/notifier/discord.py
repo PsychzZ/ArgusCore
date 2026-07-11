@@ -71,6 +71,26 @@ def build_embed(event: RawEvent) -> dict[str, Any]:
     }
 
 
+DIGEST_MAX_ITEMS = 10
+
+
+def build_digest_embed(events: list[RawEvent]) -> dict[str, Any]:
+    ordered = sorted(events, key=lambda e: e.relevance_score or 0, reverse=True)
+    shown = ordered[:DIGEST_MAX_ITEMS]
+    lines = []
+    for e in shown:
+        ticker = f"`{e.ticker}` " if e.ticker else ""
+        lines.append(f"**[{e.title}]({e.url})** — {ticker}{e.relevance_score}/100")
+    embed: dict[str, Any] = {
+        "title": f"Daily Digest — {len(ordered)} Events",
+        "description": "\n".join(lines),
+        "color": COLOR_NEUTRAL,
+    }
+    if len(ordered) > DIGEST_MAX_ITEMS:
+        embed["footer"] = {"text": f"+{len(ordered) - DIGEST_MAX_ITEMS} weitere"}
+    return embed
+
+
 class DiscordClient:
     def __init__(
         self, webhook_url: str, max_attempts: int = 3, retry_backoff_base: float = 1.0
