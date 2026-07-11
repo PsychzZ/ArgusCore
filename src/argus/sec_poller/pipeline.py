@@ -76,7 +76,7 @@ class SecPipeline:
                     )
                     continue
 
-                external_id = url.rsplit("/", 1)[-1]
+                external_id = url
                 content_hash = hashlib.sha256(
                     f"{external_id}:{data.transaction_code}:{data.shares}".encode()
                 ).hexdigest()
