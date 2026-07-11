@@ -81,6 +81,9 @@ class RawEvent(Base):
     status: Mapped[str] = mapped_column(String(16), default="new")
     error_message: Mapped[str | None] = mapped_column(Text)
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    duplicate_of: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("raw_events.id"), nullable=True
+    )
 
     relevance_score: Mapped[int | None] = mapped_column(Integer)
     sentiment: Mapped[str | None] = mapped_column(String(16))

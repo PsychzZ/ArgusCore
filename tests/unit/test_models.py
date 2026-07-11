@@ -29,6 +29,13 @@ def test_raw_event_status_setter():
     assert e.relevance_score == 85
 
 
+def test_raw_event_has_duplicate_of_column():
+    col = RawEvent.__table__.columns["duplicate_of"]
+    assert col.nullable is True
+    fks = list(col.foreign_keys)
+    assert fks and fks[0].column.table.name == "raw_events"
+
+
 def test_llm_call_relationship():
     call = LlmCall(
         event_id="00000000-0000-0000-0000-000000000000",
