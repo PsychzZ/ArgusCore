@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     # Operational
     log_level: str = "INFO"
     health_port: int = 8080
+    digest_hour: int = 18
     watchlist_path: str = "watchlist.yaml"
     feeds_path: str = "feeds.yaml"
 
@@ -49,6 +50,7 @@ class WatchlistConfig(BaseModel):
     thresholds: dict[str, int] = Field(
         default_factory=lambda: {
             "min_relevance_score": 70,
+            "instant_score": 90,
             "form4_buy_min_usd": 100_000,
             "form4_sell_min_usd": 1_000_000,
         }
@@ -61,6 +63,7 @@ def load_watchlist(path: str | Path) -> WatchlistConfig:
     thresholds = data.get("thresholds") or {}
     data["thresholds"] = {
         "min_relevance_score": 70,
+        "instant_score": 90,
         "form4_buy_min_usd": 100_000,
         "form4_sell_min_usd": 1_000_000,
         **thresholds,

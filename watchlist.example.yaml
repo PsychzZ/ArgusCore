@@ -18,5 +18,6 @@ keywords:
 
 thresholds:
   min_relevance_score: 70
+  instant_score: 90  # score >= instant_score pings immediately; below goes to the daily digest
   form4_buy_min_usd: 100000
   form4_sell_min_usd: 1000000

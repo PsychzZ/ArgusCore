@@ -42,3 +42,12 @@ thresholds:
     assert wl.watchlist[0]["ticker"] == "NVDA"
     assert "insider buy" in wl.keywords
     assert wl.thresholds["form4_buy_min_usd"] == 100000
+
+
+def test_thresholds_include_instant_score_default(tmp_path):
+    from argus.common.config import load_watchlist
+
+    p = tmp_path / "watchlist.yaml"
+    p.write_text("watchlist: []\nkeywords: []\n", encoding="utf-8")
+    cfg = load_watchlist(p)
+    assert cfg.thresholds["instant_score"] == 90
