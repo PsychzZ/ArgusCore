@@ -50,10 +50,12 @@ class DeepSeekProvider:
             latency_ms = int((time.monotonic() - t0) * 1000)
             usage = data.get("usage", {})
             content = data["choices"][0]["message"]["content"]
+            from pydantic import ValidationError
+
             try:
                 parsed = json.loads(content)
                 cls = Classification.model_validate(parsed)
-            except (json.JSONDecodeError, ValueError) as e:
+            except (json.JSONDecodeError, ValidationError) as e:
                 log.warning(
                     "llm.invalid_json", event_id=str(event.id), attempt=attempt, error=str(e)
                 )
