@@ -69,3 +69,49 @@ def test_digest_embed_no_footer_when_ten_or_fewer():
 
     embed = build_digest_embed([_mk("only one", score=75)])
     assert "footer" not in embed
+
+
+def _mk_form4(filer_name, role, ttype, value, ticker="NVDA"):
+    from argus.common.models import RawEvent
+
+    return RawEvent(
+        source="sec_form4",
+        external_id=f"{filer_name}-{ttype}",
+        content_hash="h",
+        ticker=ticker,
+        title=f"Form 4 - {filer_name} ({role})",
+        body="b",
+        url="u",
+        status="new",
+        poller_meta={
+            "filer_name": filer_name,
+            "filer_role": role,
+            "transaction_type": ttype,
+            "value_usd": value,
+        },
+    )
+
+
+def test_cluster_embed_shows_ticker_and_net():
+    from argus.notifier.discord import COLOR_ALERT, build_cluster_embed
+
+    members = [
+        _mk_form4("Alice", "CFO", "P", 100_000),
+        _mk_form4("Bob", "Director", "S", 50_000),
+    ]
+    embed = build_cluster_embed("NVDA", members)
+    assert "NVDA" in embed["title"]
+    assert "2 filings" in embed["description"]
+    assert "Buys: $100,000" in embed["description"]
+    assert "Sells: $50,000" in embed["description"]
+    assert embed["color"] == COLOR_ALERT
+
+
+def test_cluster_embed_caps_at_ten():
+    from argus.notifier.discord import build_cluster_embed
+
+    members = [_mk_form4(f"P{i}", "", "P", 1000 + i) for i in range(12)]
+    embed = build_cluster_embed("NVDA", members)
+    lines = [ln for ln in embed["description"].splitlines() if ln.startswith("•")]
+    assert len(lines) == 10
+    assert "+2 more" in embed["description"]

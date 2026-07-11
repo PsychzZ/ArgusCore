@@ -11,6 +11,7 @@ log = get_logger(__name__)
 COLOR_POSITIVE = 3066993  # green
 COLOR_NEGATIVE = 15158332  # red
 COLOR_NEUTRAL = 9807270  # grey
+COLOR_ALERT = 15105570  # orange
 
 _SOURCE_LABEL = {"sec_form4": "SEC Form 4", "rss": "RSS"}
 
@@ -89,6 +90,48 @@ def build_digest_embed(events: list[RawEvent]) -> dict[str, Any]:
     if len(ordered) > DIGEST_MAX_ITEMS:
         embed["footer"] = {"text": f"+{len(ordered) - DIGEST_MAX_ITEMS} weitere"}
     return embed
+
+
+CLUSTER_MAX_ITEMS = 10
+
+
+def build_cluster_embed(ticker: str, members: list[RawEvent]) -> dict[str, Any]:
+    """Build a standalone cluster alert embed for one ticker's Form-4 cluster.
+
+    Shows filing count, net buys/sells (from ``poller_meta``), and a capped filer
+    list. Returns a bare embed dict; callers wrap it in ``{"embeds": [...]}`` for
+    ``DiscordClient.send_embed`` (same convention as ``build_digest_embed``).
+    """
+    buys = sum(
+        (m.poller_meta or {}).get("value_usd", 0)
+        for m in members
+        if (m.poller_meta or {}).get("transaction_type") == "P"
+    )
+    sells = sum(
+        (m.poller_meta or {}).get("value_usd", 0)
+        for m in members
+        if (m.poller_meta or {}).get("transaction_type") == "S"
+    )
+    lines = []
+    for m in sorted(members, key=lambda e: e.fetched_at):
+        meta = m.poller_meta or {}
+        role = meta.get("filer_role") or "—"
+        ttype = meta.get("transaction_type", "?")
+        value = meta.get("value_usd", 0)
+        lines.append(f"• {meta.get('filer_name', '?')} ({role}) — {ttype} ${value:,.0f}")
+    shown = lines[:CLUSTER_MAX_ITEMS]
+    description = "\n".join(shown)
+    if len(lines) > CLUSTER_MAX_ITEMS:
+        description += f"\n+{len(lines) - CLUSTER_MAX_ITEMS} more"
+    return {
+        "title": f"Form 4 Cluster — {ticker.upper()}",
+        "description": (
+            f"{len(members)} filings in 48h\n"
+            f"Buys: ${buys:,.0f} · Sells: ${sells:,.0f}\n"
+            f"{description}"
+        ),
+        "color": COLOR_ALERT,
+    }
 
 
 class DiscordClient:
