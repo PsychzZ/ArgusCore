@@ -67,7 +67,12 @@ async def test_excludes_old_filings(db):
 
 async def test_excludes_null_ticker(db):
     async with db() as session:
-        session.add_all([_mk(external_id="a"), _mk(external_id="b", ticker=None)])
+        session.add_all(
+            [
+                _mk(external_id="a", ticker=None),
+                _mk(external_id="b", ticker=None),
+            ]
+        )
         await session.commit()
     since = datetime.now(UTC) - timedelta(hours=48)
     result = await find_form4_clusters(session=db, since=since, min_filings=2)
