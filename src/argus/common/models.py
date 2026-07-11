@@ -133,3 +133,23 @@ class PollingState(Base):
     source: Mapped[str] = mapped_column(String(128), primary_key=True)
     cursor: Mapped[str] = mapped_column(Text, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class Form4Cluster(Base):
+    """A detected Form-4 filing cluster (same ticker, >= N filings in a window).
+
+    Used for idempotent cluster alerting: one row per ticker per ~window, with
+    ``alerted_at`` set only after a successful Discord send. Later scans refresh
+    ``member_event_ids`` / ``window_end`` on the open row without re-sending.
+    """
+
+    __tablename__ = "form4_clusters"
+    __table_args__ = (Index("idx_form4_clusters_ticker_created", "ticker", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ticker: Mapped[str] = mapped_column(String(16), nullable=False)
+    member_event_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False)
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    window_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    alerted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

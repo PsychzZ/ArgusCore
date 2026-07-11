@@ -47,3 +47,14 @@ def test_llm_call_relationship():
         latency_ms=480,
     )
     assert call.provider == "deepseek"
+
+
+def test_form4_cluster_columns():
+    from argus.common.models import Form4Cluster
+
+    cols = Form4Cluster.__table__.columns
+    assert cols["ticker"].nullable is False
+    assert cols["member_event_ids"].nullable is False
+    assert cols["alerted_at"].nullable is True
+    index_names = {i.name for i in Form4Cluster.__table__.indexes}
+    assert "idx_form4_clusters_ticker_created" in index_names
