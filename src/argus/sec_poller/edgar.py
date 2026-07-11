@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 from lxml import etree
 
@@ -66,11 +67,33 @@ class EdgarClient:
     async def list_recent_form4_urls(self, since: str) -> list[str]:
         res = await self._client.get(
             self.SEARCH_URL,
-            params={"q": '"form type":"4"', "dateRange": "custom", "startDt": since},
+            params={"forms": "4", "dateRange": "custom", "startdt": since},
         )
         res.raise_for_status()
         data = res.json()
-        return [hit["_source"]["_id"] for hit in data.get("hits", {}).get("hits", [])]
+        urls = []
+        for hit in data.get("hits", {}).get("hits", []):
+            url = self._hit_to_url(hit)
+            if url is None:
+                log.warning("sec.malformed_hit", hit_id=hit.get("_id"))
+                continue
+            urls.append(url)
+        return urls
+
+    @staticmethod
+    def _hit_to_url(hit: dict[str, Any]) -> str | None:
+        # EFTS hit ids look like "0001769628-26-000318:form4.xml"; the archive
+        # path needs a CIK (any of the filing's CIKs works) plus the accession
+        # number without dashes.
+        hit_id: str = hit.get("_id", "")
+        if ":" not in hit_id:
+            return None
+        adsh, _, filename = hit_id.partition(":")
+        ciks = hit.get("_source", {}).get("ciks") or []
+        if not ciks or not filename:
+            return None
+        cik = ciks[0].lstrip("0")
+        return f"https://www.sec.gov/Archives/edgar/data/{cik}/{adsh.replace('-', '')}/{filename}"
 
     @with_retry()
     async def fetch_filing_xml(self, url: str) -> bytes:

@@ -40,7 +40,8 @@ async def main() -> None:
 
     engine = create_engine(settings.database_url)
     sessions = create_session_factory(engine)
-    client = make_client()
+    # SEC feeds reject requests without a descriptive User-Agent
+    client = make_client(user_agent=settings.sec_user_agent)
 
     pipelines = [
         RssPipeline(client=client, session_factory=sessions, watchlist=watchlist, feed=feed)

@@ -43,6 +43,25 @@ async def test_with_retry_no_retry_on_404():
 
 
 @pytest.mark.asyncio
+async def test_make_client_sets_user_agent_and_follows_redirects():
+    from argus.common.http import make_client
+
+    client = make_client(user_agent="ArgusCore/1.0 (test@example.com)")
+    assert client.headers["User-Agent"] == "ArgusCore/1.0 (test@example.com)"
+    assert client.follow_redirects is True
+    await client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_make_client_default_has_no_custom_user_agent():
+    from argus.common.http import make_client
+
+    client = make_client()
+    assert "httpx" in client.headers["User-Agent"]
+    await client.aclose()
+
+
+@pytest.mark.asyncio
 async def test_with_retry_max_attempts_exceeded():
     from argus.common.http import with_retry
 

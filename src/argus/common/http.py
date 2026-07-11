@@ -44,9 +44,12 @@ def with_retry(
     return decorator
 
 
-def make_client(timeout: float = 30.0) -> httpx.AsyncClient:
+def make_client(timeout: float = 30.0, user_agent: str | None = None) -> httpx.AsyncClient:
+    headers = {"User-Agent": user_agent} if user_agent else None
     return httpx.AsyncClient(
         timeout=httpx.Timeout(timeout, connect=10.0),
         transport=httpx.AsyncHTTPTransport(retries=3, http2=True),
         limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
+        follow_redirects=True,
+        headers=headers,
     )
