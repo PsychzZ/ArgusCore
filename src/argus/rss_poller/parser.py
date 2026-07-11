@@ -20,11 +20,7 @@ class FeedItem:
 
 
 def _parse_date(entry: Any) -> datetime | None:
-    for field in ("published_parsed", "updated_parsed"):
-        v = entry.get(field)
-        if v:
-            return datetime.fromtimestamp(time.mktime(v), tz=UTC)
-    return None
+            return datetime(*v[:6], tzinfo=UTC)
 
 
 def parse_feed(xml_bytes: bytes, base_url: str = "") -> list[FeedItem]:
