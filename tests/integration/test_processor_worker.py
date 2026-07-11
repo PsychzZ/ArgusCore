@@ -32,6 +32,13 @@ async def db(testcontainer_postgres):
 
 async def test_worker_classifies_new_events(db):
     _engine, sessions = db
+    # Distinct titles so the dedup pass doesn't flag them as duplicates —
+    # this test is about classification, not dedup.
+    titles = [
+        "NVIDIA launches new GPU line",
+        "Analysts raise price targets after earnings",
+        "Fed keeps interest rates unchanged",
+    ]
     async with sessions() as session:
         for i in range(3):
             session.add(
@@ -40,7 +47,7 @@ async def test_worker_classifies_new_events(db):
                     external_id=f"e{i}",
                     content_hash=f"h{i}",
                     ticker="NVDA" if i < 2 else None,
-                    title="t",
+                    title=titles[i],
                     body="b",
                     url="u",
                 )
@@ -74,3 +81,42 @@ async def test_worker_classifies_new_events(db):
         statuses = {e.external_id: e.status for e in events}
         # All 3 get processed by worker (it pulls 'new' events); classify() handles skip
         assert all(s in ("processed", "skipped") for s in statuses.values())
+
+
+async def test_duplicate_skips_llm_and_marks_status(db):
+    _engine, sessions = db
+    classifier = AsyncMock()
+    async with sessions() as session:
+        original = RawEvent(
+            source="rss",
+            external_id="a",
+            content_hash="h1",
+            ticker="NVDA",
+            title="NVIDIA CEO buys 50,000 shares",
+            body="b",
+            url="u",
+            status="processed",
+            relevance_score=80,
+        )
+        dup = RawEvent(
+            source="sec_form4",
+            external_id="b",
+            content_hash="h2",
+            ticker="NVDA",
+            title="Nvidia CEO Huang buys 50000 shares!",
+            body="b",
+            url="u",
+            status="new",
+        )
+        session.add_all([original, dup])
+        await session.commit()
+        dup_id, orig_id = dup.id, original.id
+
+    worker = ProcessorWorker(sessions=sessions, classifier=classifier)
+    await worker.run_once()
+
+    classifier.classify.assert_not_called()
+    async with sessions() as session:
+        row = await session.get(RawEvent, dup_id)
+        assert row.status == "duplicate"
+        assert row.duplicate_of == orig_id

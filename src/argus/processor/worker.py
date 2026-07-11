@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from argus.common.logging import get_logger
 from argus.common.models import RawEvent
 from argus.processor.classifier import Classifier
+from argus.processor.dedup import find_duplicate
 
 log = get_logger(__name__)
 
@@ -18,7 +19,10 @@ class ProcessorWorker:
     successfully classified events so the return value reflects real LLM
     throughput. ``classify()`` is responsible for marking failures with a retry
     bump rather than raising, so the loop keeps draining the queue even when a
-    single event blows up the LLM call.
+    single event blows up the LLM call. Before classification each event is
+    checked against recent events for cross-source duplicates; duplicates are
+    marked ``duplicate`` (with ``duplicate_of`` pointing at the original) and
+    never reach the LLM.
     """
 
     def __init__(
@@ -43,6 +47,21 @@ class ProcessorWorker:
             )
             events = list(result.scalars().all())
             for event in events:
+                try:
+                    duplicate_of = await find_duplicate(session, event)
+                except Exception:
+                    # fail open: lieber doppelt klassifizieren als Event verlieren
+                    log.exception("worker.dedup_failed", event_id=str(event.id))
+                    duplicate_of = None
+                if duplicate_of is not None:
+                    event.status = "duplicate"
+                    event.duplicate_of = duplicate_of.id
+                    log.info(
+                        "worker.duplicate_skipped",
+                        event_id=str(event.id),
+                        original_id=str(duplicate_of.id),
+                    )
+                    continue
                 try:
                     await self._classifier.classify(session, event)
                 except Exception:
