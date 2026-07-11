@@ -1,12 +1,9 @@
 import functools
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
-from typing import TypeVar
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-
-T = TypeVar("T")
 
 
 class LastRunTracker:
@@ -19,7 +16,9 @@ class LastRunTracker:
         self.iso = datetime.now(UTC).isoformat()
 
 
-def tracked(job: Callable[[], Awaitable[T]], tracker: LastRunTracker) -> Callable[[], Awaitable[T]]:
+def tracked[T](
+    job: Callable[[], Awaitable[T]], tracker: LastRunTracker
+) -> Callable[[], Awaitable[T]]:
     """Wrap a scheduler job so the tracker is marked after each successful run."""
 
     @functools.wraps(job)
