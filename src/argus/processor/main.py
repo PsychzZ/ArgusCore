@@ -10,7 +10,7 @@ from argus.common.config import Settings, load_watchlist
 from argus.common.db import create_engine, create_session_factory
 from argus.common.health import create_app
 from argus.common.logging import get_logger, setup_logging
-from argus.llm.deepseek import DeepSeekProvider
+from argus.llm import create_provider
 from argus.processor.classifier import Classifier
 from argus.processor.filters import WatchlistFilter
 from argus.processor.worker import ProcessorWorker
@@ -35,7 +35,7 @@ async def main() -> None:
     engine = create_engine(settings.database_url)
     sessions = create_session_factory(engine)
 
-    llm = DeepSeekProvider(api_key=settings.deepseek_api_key, model=settings.deepseek_model)
+    llm = create_provider(settings)
     classifier = Classifier(filter_=WatchlistFilter(watchlist), llm=llm)
     worker = ProcessorWorker(sessions=sessions, classifier=classifier)
 

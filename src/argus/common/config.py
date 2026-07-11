@@ -18,8 +18,10 @@ class Settings(BaseSettings):
 
     # LLM
     llm_provider: str = "deepseek"
-    deepseek_api_key: str
+    deepseek_api_key: str | None = None
     deepseek_model: str = "deepseek-chat"
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-2.5-flash"
 
     # Discord
     discord_webhook_url: str
