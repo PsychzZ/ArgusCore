@@ -33,7 +33,7 @@ Four Python services + Postgres, orchestrated via Docker Compose:
 - **sec-poller** — pulls SEC EDGAR Form 4 filings hourly, filters by transaction value
 - **rss-poller** — pulls RSS/Atom feeds every 10 minutes, filters by ticker/keyword
 - **processor** — classifies new events via LLM (DeepSeek or Gemini, relevance score 0-100, sentiment, summary); cross-source duplicates (same ticker, similar title within 48h) are marked `duplicate` before the LLM call and never notified
-- **notifier** — hybrid delivery: events with score >= `instant_score` (default 90) ping Discord immediately; the band between `min_relevance_score` and `instant_score` is collected into one daily digest embed sent at `DIGEST_HOUR` UTC (default 18)
+- **notifier** — hybrid delivery: events with score >= `instant_score` (default 90) ping Discord immediately; the band between `min_relevance_score` and `instant_score` is collected into one daily digest embed sent at `DIGEST_HOUR` UTC (default 18). A separate hourly job detects Form-4 clusters (>= `form4_cluster_min_filings` same-ticker filings within `form4_cluster_window_h`) and sends one instant "Form 4 Cluster" embed per ticker
 
 Services communicate via shared Postgres: the `raw_events.status` column acts as a queue
 (`new → processed → sent`, with `duplicate` and `failed` as terminal side states).
